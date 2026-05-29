@@ -37,6 +37,7 @@ describe("remarkDesignMd", () => {
     expect(tree?.data?.design?.tabs).toEqual([
       {
         name: "device",
+        display: "select",
         tabs: [
           { key: "pc", label: "PC" },
           { key: "tablet", label: "タブレット" },
@@ -45,6 +46,7 @@ describe("remarkDesignMd", () => {
       },
       {
         name: "state",
+        display: "tabs",
         tabs: [
           { key: "normal", label: "通常" },
           { key: "empty", label: "データなし" },

@@ -7,8 +7,11 @@ export type DesignTab = {
   label: string;
 };
 
+export type DesignTabDisplay = "tabs" | "select";
+
 export type DesignTabGroup = {
   name: string;
+  display: DesignTabDisplay;
   tabs: DesignTab[];
 };
 
@@ -42,4 +45,3 @@ export const recommendedTypes = [
   "history",
   "checklist",
 ];
-

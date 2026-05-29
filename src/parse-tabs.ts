@@ -1,9 +1,15 @@
 import type { Content, List, Root } from "mdast";
 import type { VFile } from "vfile";
-import type { DesignTab, DesignTabGroup } from "./types.js";
+import type { DesignTab, DesignTabDisplay, DesignTabGroup } from "./types.js";
 
 type ParseOptions = {
   validate: boolean;
+};
+
+type TabsStart = {
+  name: string;
+  display: DesignTabDisplay;
+  invalidDisplay?: string;
 };
 
 function message(file: VFile, reason: string, node: unknown, fatal = true): void {
@@ -39,6 +45,7 @@ function parseItemText(value: string): DesignTab | undefined {
 
 function parseTabsList(
   name: string,
+  display: DesignTabDisplay,
   list: List,
   file: VFile,
   options: ParseOptions,
@@ -82,17 +89,41 @@ function parseTabsList(
     tabs.push(tab);
   }
 
-  return { name, tabs };
+  return { name, display, tabs };
 }
 
-function parsePseudoTabsStart(node: Content): string | undefined {
+function parseTabsStart(value: string): TabsStart | undefined {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("tabs")) {
+    return undefined;
+  }
+
+  const tokens = trimmed.split(/\s+/);
+  if (tokens[0] !== "tabs" || tokens.length > 3) {
+    return undefined;
+  }
+
+  const name = tokens[1] ?? "";
+  if (name.length > 0 && !/^[A-Za-z0-9_-]+$/.test(name)) {
+    return undefined;
+  }
+
+  const display = tokens[2] ?? "tabs";
+  if (display === "tabs" || display === "select") {
+    return { name, display };
+  }
+
+  return { name, display: "tabs", invalidDisplay: display };
+}
+
+function parsePseudoTabsStart(node: Content): TabsStart | undefined {
   const text = paragraphText(node);
   if (!text) {
     return undefined;
   }
 
-  const match = text.match(/^::tabs(?:\s+([A-Za-z0-9_-]+))?\s*$/);
-  return match ? match[1] ?? "" : undefined;
+  const match = text.match(/^::(.+)$/);
+  return match ? parseTabsStart(match[1]) : undefined;
 }
 
 function attachRootTabs(tree: Root, tabs: DesignTabGroup[]): void {
@@ -127,7 +158,12 @@ export function parseTabs(tree: Root, file: VFile, options: ParseOptions): Desig
     };
 
     if (directiveNode.type === "containerDirective" && directiveNode.name === "tabs") {
-      const name = typeof directiveNode.label === "string" ? directiveNode.label.trim() : "";
+      const start = parseTabsStart(`tabs ${typeof directiveNode.label === "string" ? directiveNode.label : ""}`);
+      const name = start?.name ?? "";
+      const display = start?.display ?? "tabs";
+      if (start?.invalidDisplay && options.validate) {
+        message(file, `Invalid tabs display "${start.invalidDisplay}" in "${name}"`, directiveNode);
+      }
       if (name.length === 0 && options.validate) {
         message(file, "Missing tabs group name", directiveNode);
       }
@@ -136,16 +172,21 @@ export function parseTabs(tree: Root, file: VFile, options: ParseOptions): Desig
         ? directiveNode.children.find((child) => child.type === "list")
         : undefined;
       if (name.length > 0 && list?.type === "list") {
-        tabs.push(parseTabsList(name, list, file, options));
+        tabs.push(parseTabsList(name, display, list, file, options));
       }
       tree.children.splice(index, 1);
       index -= 1;
       continue;
     }
 
-    const name = parsePseudoTabsStart(contentNode);
-    if (name === undefined) {
+    const start = parsePseudoTabsStart(contentNode);
+    if (start === undefined) {
       continue;
+    }
+
+    const { name, display } = start;
+    if (start.invalidDisplay && options.validate) {
+      message(file, `Invalid tabs display "${start.invalidDisplay}" in "${name}"`, contentNode);
     }
 
     if (name.length === 0 && options.validate) {
@@ -154,7 +195,7 @@ export function parseTabs(tree: Root, file: VFile, options: ParseOptions): Desig
 
     const list = tree.children[index + 1];
     if (name.length > 0 && list?.type === "list") {
-      tabs.push(parseTabsList(name, list, file, options));
+      tabs.push(parseTabsList(name, display, list, file, options));
       tree.children.splice(index, 2);
       index -= 1;
       continue;

@@ -10,6 +10,7 @@ export type {
   DesignAttrs,
   DesignData,
   DesignTab,
+  DesignTabDisplay,
   DesignTabGroup,
   RemarkDesignMdOptions,
 } from "./types.js";
@@ -30,4 +31,3 @@ const remarkDesignMd: Plugin<[RemarkDesignMdOptions?], Root> = (options = {}) =>
 };
 
 export default remarkDesignMd;
-

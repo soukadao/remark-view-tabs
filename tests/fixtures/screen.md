@@ -9,7 +9,7 @@ title: ユーザー一覧画面
 
 ## 画面イメージ {type=layout}
 
-::tabs device
+::tabs device select
 - pc: PC
 - tablet: タブレット
 - mobile: スマホ
@@ -22,4 +22,3 @@ title: ユーザー一覧画面
 ::
 
 ![PC通常](./images/user-list-pc-normal.png){device=pc state=normal}
-
