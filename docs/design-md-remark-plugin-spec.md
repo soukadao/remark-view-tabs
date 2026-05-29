@@ -370,9 +370,29 @@ Webプレビュー
 制約:
 
 - `tabs` の直後にタブグループ名を必須とする。
-- タブ項目は `- key: label` 形式を推奨する。
+- タブ項目は `- key: label` 形式を必須とする。
 - 同一グループ内の `key` 重複はエラーとする。
 - 同一ファイル内の同名 `tabs` グループ重複はエラーまたは警告とする。第一版ではエラーとする。
+
+### tabs の mdast 解析
+
+`remark-directive` 適用後、tabs 定義は以下の条件を満たす `containerDirective` として扱う。
+
+- `node.type` が `containerDirective` である。
+- `node.name` が `tabs` である。
+- `node.children` の先頭が `list` である。
+- `listItem` は単一の `paragraph` を持つ。
+- `paragraph` は単一の `text` を持ち、その値を最初の `:` で `key` と `label` に分割できる。
+
+`key` と `label` は前後の空白を trim する。`key` または `label` が空文字の場合はエラーとする。`label` 内の `:` は許可し、最初の `:` より後ろをすべて label として扱う。
+
+tabs 定義用の `containerDirective` は root の `data.design.tabs` に収集したあと、viewer に渡す本文 mdast から取り除く。
+
+### 未定義タブ値の扱い
+
+`device` または `state` 属性が存在する場合、対応する `::tabs device` または `::tabs state` は必須とする。対応する tabs グループが存在しない場合も、値がグループ内に存在しない場合もエラーとする。
+
+`knownTabNames` が指定されている場合、`knownTabNames` に含まれない tabs グループ名は警告とする。未指定の場合は任意の tabs グループ名を許可する。
 
 ## 属性解析仕様
 
