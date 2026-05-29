@@ -1,0 +1,16 @@
+lockfile_version: '1'
+generated_at: '2026-05-29T02:16:14.896934+00:00'
+apm_version: 0.14.1
+dependencies:
+- repo_url: soukadao/gitcv
+  host: github.com
+  resolved_commit: f6616d4958a623ac9ede1f592688b657f340bb49
+  resolved_ref: f6616d4958a623ac9ede1f592688b657f340bb49
+  package_type: skill_bundle
+  deployed_files:
+  - .agents/skills/git-branch-strategy
+  - .agents/skills/git-typed-commit
+  content_hash: sha256:acee1c31c80021ce1417e18bd7776a36fe724d182bb98a23a242e1a52128adf3
+  skill_subset:
+  - git-branch-strategy
+  - git-typed-commit
