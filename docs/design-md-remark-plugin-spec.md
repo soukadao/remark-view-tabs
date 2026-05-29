@@ -288,9 +288,23 @@ export type DesignData = {
 export type RemarkDesignMdOptions = {
   validate?: boolean;
   knownTabNames?: string[];
+  knownTypes?: string[];
   requiredFrontmatter?: string[];
 };
 ```
+
+### options
+
+`RemarkDesignMdOptions` は以下の意味を持つ。
+
+| option | 既定値 | 用途 |
+|---|---|---|
+| `validate` | `true` | `false` の場合、解析は行うが `vfile.message()` による検証結果を出力しない |
+| `knownTabNames` | `undefined` | 指定時、含まれない tabs グループ名を警告する |
+| `knownTypes` | 推奨 `type` 一覧 | `type` 属性の許可リスト。含まれない値は警告する |
+| `requiredFrontmatter` | `[]` | YAML frontmatter に必須とする key の一覧 |
+
+`knownTypes` 未指定時は、本仕様の推奨 `type` を許可リストとして扱う。viewer 固有の type を許可する場合、viewer は `knownTypes` を渡す。
 
 mdast node には以下のように付与する。
 
@@ -298,6 +312,7 @@ mdast node には以下のように付与する。
 node.data = {
   ...node.data,
   design: {
+    ...node.data?.design,
     attrs: {
       device: "pc",
       state: "normal"
@@ -312,6 +327,7 @@ root node には以下のように付与する。
 tree.data = {
   ...tree.data,
   design: {
+    ...tree.data?.design,
     tabs: [
       {
         name: "device",
@@ -456,13 +472,18 @@ heading 属性は、heading の末尾 text から属性文字列を取り除き�
 - 同一ファイル内に同じ `tabs` グループが複数ある。
 - `{device=...}` があるが `::tabs device` に定義されていない。
 - `{state=...}` があるが `::tabs state` に定義されていない。
+- `requiredFrontmatter` に指定された key が YAML frontmatter に存在しない。
 
 ### 警告
 
 - `type` が推奨値に含まれない。
+- `knownTypes` 指定時、`type` が `knownTypes` に含まれない。
+- `knownTabNames` 指定時、tabs グループ名が `knownTabNames` に含まれない。
+- 同一ファイル内で `id` 属性が重複している。
 - image に alt がない。
 - heading に空の属性がある。
-- table に属性があるが viewer が解釈できない `type` である。
+
+`type` の警告は `knownTypes` を基準にする。`knownTypes` 未指定時は推奨 `type` 一覧を基準にする。
 
 ## viewer連携
 
