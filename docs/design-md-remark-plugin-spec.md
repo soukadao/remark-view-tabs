@@ -532,6 +532,30 @@ AIに Design Markdown を生成させる場合は、以下を指示する。
 - `device` / `state` の整合性チェック
 - fixture ベースの単体テスト
 
+### fixture 受け入れ条件
+
+MVP の単体テストでは、以下の fixture を用意する。
+
+| fixture | 目的 | 主な期待結果 |
+|---|---|---|
+| `screen.md` | 正常系の画面設計書 | root に `device` / `state` tabs が付与され、heading / image の attrs が付与される |
+| `table-attrs.md` | table 直後属性の解析 | table node に `type=controls` が付与され、属性だけの paragraph が本文から除去される |
+| `image-attrs.md` | image 属性の解析 | image node に `device` と `state` が付与され、alt ありのため warning が出ない |
+| `invalid-unknown-device.md` | 未定義 device の検出 | `vfile.message()` に error severity の message が 1 件以上出る |
+| `invalid-unknown-state.md` | 未定義 state の検出 | `vfile.message()` に error severity の message が 1 件以上出る |
+| `invalid-duplicate-tab.md` | 同一 tabs グループ内 key 重複 | 重複 key を示す error message が出る |
+| `invalid-duplicate-tab-group.md` | 同名 tabs グループ重複 | 重複グループ名を示す error message が出る |
+| `warning-unknown-type.md` | 推奨外 type の検出 | warning severity の message が出る |
+| `warning-empty-alt.md` | image alt なしの検出 | warning severity の message が出る |
+
+テストでは、少なくとも以下を assert する。
+
+- `tree.data.design.tabs` のグループ名、key、label。
+- 対象 node の `data.design.attrs`。
+- 属性文字列や tabs directive が viewer に渡す本文 mdast から除去されていること。
+- `vfile.messages` の件数、severity、対象 reason の一部文字列。
+- `validate: false` の場合、同じ入力でも `vfile.messages` が追加されないこと。
+
 第一版では実装しない。
 
 - GUI編集からMarkdownへ戻す serializer
